@@ -1,4 +1,5 @@
 # Simple With Whitelisting (sw2)
+
 Simple With Whitelisting (sw2) is a nostr relay that only accepts notes from whitelisted pubkeys.
 
 It's built on the [Khatru](https://khatru.nostr.technology) framework.
@@ -10,7 +11,7 @@ It's built on the [Khatru](https://khatru.nostr.technology) framework.
 
 ## Setup Instructions
 
-Follow these steps to get the WOT Relay running on your local machine:
+Follow these steps to get the sw2 Relay running on your local machine:
 
 ### 1. Clone the repository
 
@@ -33,14 +34,27 @@ Open the `.env` file and set the necessary environment variables. Example variab
 
 ```bash
 RELAY_NAME="utxo's bot relay"
-RELAY_PUBKEY="e2ccf7cf20403f3f2a4a55b328f0de3be38558a7d5f33632fdaaefc726c1c8eb" 
+RELAY_PUBKEY="e2ccf7cf20403f3f2a4a55b328f0de3be38558a7d5f33632fdaaefc726c1c8eb"
 RELAY_DESCRIPTION="all my bots will use this relay"
 RELAY_URL="wss://bots.utxo.one"
 RELAY_ICON="https://pfp.nostr.build/d8fb3b6100a0eb9e652bbc34a0c043b7f225dc74e4ed6d733d0e059f9bd444d4.jpg"
 RELAY_CONTACT="https://utxo.one"
 ```
 
-### 4. Build the project
+### 4. Whitelist Pubkeys
+
+Open the `whitelist.json` file and add pubkeys to the array
+
+```json
+{
+  "pubkeys": [
+    "1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551",
+    "9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27"
+  ]
+}
+```
+
+### 5. Build the project
 
 Run the following command to build the relay:
 
@@ -48,9 +62,9 @@ Run the following command to build the relay:
 go build
 ```
 
-### 5. Create a Systemd Service (optional)
+### 6. Create a Systemd Service (optional)
 
-To have the relay run as a service, create a systemd unit file. 
+To have the relay run as a service, create a systemd unit file.
 
 1. Create the file:
 
@@ -100,7 +114,7 @@ the relay may not have permissions to read and write to the database. To fix thi
 sudo chmod -R 777 /path/to/db
 ```
 
-### 6. Serving over nginx (optional)
+### 7. Serving over nginx (optional)
 
 You can serve the relay over nginx by adding the following configuration to your nginx configuration file:
 
@@ -130,7 +144,7 @@ After adding the configuration, restart nginx:
 sudo systemctl restart nginx
 ```
 
-### 7. Install Certbot (optional)
+### 8. Install Certbot (optional)
 
 If you want to serve the relay over HTTPS, you can use Certbot to generate an SSL certificate.
 
