@@ -38,6 +38,30 @@ func loadWhitelist(filename string) (*Whitelist, error) {
 	return &whitelist, nil
 }
 
+type ReadWhitelist struct {
+	Pubkeys []string `json:"pubkeys"`
+}
+
+func loadReadWhitelist(filename string) (*ReadWhitelist, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("could not open file: %w", err)
+	}
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %w", err)
+	}
+
+	var readWhitelist ReadWhitelist
+	if err := json.Unmarshal(bytes, &readWhitelist); err != nil {
+		return nil, fmt.Errorf("could not parse JSON: %w", err)
+	}
+
+	return &readWhitelist, nil
+}
+
 func main() {
 	godotenv.Load(".env")
 
@@ -87,6 +111,27 @@ func main() {
 	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
 	relay.CountEvents = append(relay.CountEvents, db.CountEvents)
 	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
+
+	readWhitelist, err := loadReadWhitelist("read_whitelist.json")
+	if err != nil {
+		fmt.Println("Error loading read whitelist:", err)
+		return
+	}
+
+	fmt.Println("Read whitelisted pubkeys:")
+	for _, pubkey := range readWhitelist.Pubkeys {
+		fmt.Println(pubkey)
+	}
+
+	relay.RejectFilter = append(relay.RejectFilter, func(ctx context.Context, filter nostr.Filter) (reject bool, msg string) {
+		authenticatedUser := khatru.GetAuthed(ctx)
+		for _, pubkey := range readWhitelist.Pubkeys {
+			if pubkey == authenticatedUser {
+				return false, ""
+			}
+		}
+		return true, "restricted: you're not authorized to read"
+	})
 
 	fmt.Println("running on :3334")
 	http.ListenAndServe(":3334", relay)
