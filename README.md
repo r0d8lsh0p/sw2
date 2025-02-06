@@ -1,4 +1,4 @@
-# Simple With Whitelisting (sw2)
+# Simple With Whitelisting (sw2) (read-auth fork)
 
 Simple With Whitelisting (sw2) is a nostr relay that only accepts notes from whitelisted pubkeys.
 
