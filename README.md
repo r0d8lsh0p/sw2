@@ -13,10 +13,10 @@ It's built on the [Khatru](https://khatru.nostr.technology) framework.
 
 This relay can suit a variety of uses:
 
-- Running a small community. Community members are whitelisted to read and post notes
-- Running a knowledge base. Users are whitelisted to read notes, but only administrators can post notes
-- Running a blind dropbox. Users are whitelisted to post notes, but only the administrator can read notes
-- Combinations of the above. A Community where members can read and post, and guests can read only
+- **Running a small community**: Community members are whitelisted to read and post notes
+- **Running a knowledge base**: Users are whitelisted to read notes, but only administrators can post notes
+- **Running a blind dropbox**: Users are whitelisted to post notes, but only the administrator can read notes
+- **Combinations of the above**: A Community where members can read and post, and guests can read only
 
 ## Setup Instructions
 
