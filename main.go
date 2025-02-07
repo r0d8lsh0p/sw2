@@ -107,10 +107,9 @@ func main() {
 		return true, "pubkey not whitelisted"
 	})
 
-	relay.StoreEvent = append(relay.StoreEvent, db.SaveEvent)
-	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
-	relay.CountEvents = append(relay.CountEvents, db.CountEvents)
-	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
+	relay.OnConnect = append(relay.OnConnect, func(ctx context.Context) {
+		khatru.RequestAuth(ctx)
+	})
 
 	readWhitelist, err := loadReadWhitelist("read_whitelist.json")
 	if err != nil {
@@ -123,8 +122,14 @@ func main() {
 		fmt.Println(pubkey)
 	}
 
+	relay.StoreEvent = append(relay.StoreEvent, db.SaveEvent)
+	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
+
 	relay.RejectFilter = append(relay.RejectFilter, func(ctx context.Context, filter nostr.Filter) (reject bool, msg string) {
 		authenticatedUser := khatru.GetAuthed(ctx)
+		if authenticatedUser == "" {
+			return true, "auth-required: this query requires you to be authenticated"
+		}
 		for _, pubkey := range readWhitelist.Pubkeys {
 			if pubkey == authenticatedUser {
 				return false, ""
@@ -133,6 +138,8 @@ func main() {
 		return true, "restricted: you're not authorized to read"
 	})
 
+	relay.CountEvents = append(relay.CountEvents, db.CountEvents)
+	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
 	fmt.Println("running on :3334")
 	http.ListenAndServe(":3334", relay)
 }
