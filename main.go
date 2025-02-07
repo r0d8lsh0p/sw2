@@ -98,6 +98,11 @@ func main() {
 			return true, "no pubkey"
 		}
 
+		// Allow if whitelist is empty
+		if len(whitelist.Pubkeys) == 0 {
+			return false, ""
+		}
+
 		for _, pubkey := range whitelist.Pubkeys {
 			if pubkey == event.PubKey {
 				return false, ""
@@ -130,6 +135,12 @@ func main() {
 		if authenticatedUser == "" {
 			return true, "auth-required: this query requires you to be authenticated"
 		}
+
+		// Allow if readWhitelist is empty
+		if len(readWhitelist.Pubkeys) == 0 {
+			return false, ""
+		}
+
 		for _, pubkey := range readWhitelist.Pubkeys {
 			if pubkey == authenticatedUser {
 				return false, ""
