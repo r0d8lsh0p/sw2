@@ -50,7 +50,7 @@ RELAY_ICON="https://pfp.nostr.build/d8fb3b6100a0eb9e652bbc34a0c043b7f225dc74e4ed
 RELAY_CONTACT="https://utxo.one"
 ```
 
-### 4.1 Whitelist Pubkeys (for Reading Notes)
+### 4.1 Whitelist Pubkeys for Reading Notes
 
 Open the `read_whitelist.json` file and add pubkeys to the array
 
@@ -66,9 +66,9 @@ Open the `read_whitelist.json` file and add pubkeys to the array
 
 If the `read_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to read.
 
-### 4.2 Whitelist Pubkeys (for Posting Notes)
+### 4.2 Whitelist Pubkeys for Posting Notes
 
-Open the `whitelist.json` file and add pubkeys to the array
+Open the `write_whitelist.json` file and add pubkeys to the array
 
 ```json
 {
@@ -80,7 +80,7 @@ Open the `whitelist.json` file and add pubkeys to the array
 }
 ```
 
-If the `whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to write.
+If the `write_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to write.
 
 ### 5. Build the project
 
