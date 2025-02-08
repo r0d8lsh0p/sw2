@@ -14,11 +14,11 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
-type Whitelist struct {
+type WriteWhitelist struct {
 	Pubkeys []string `json:"pubkeys"`
 }
 
-func loadWhitelist(filename string) (*Whitelist, error) {
+func loadWriteWhitelist(filename string) (*WriteWhitelist, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("could not open file: %w", err)
@@ -30,12 +30,12 @@ func loadWhitelist(filename string) (*Whitelist, error) {
 		return nil, fmt.Errorf("could not read file: %w", err)
 	}
 
-	var whitelist Whitelist
-	if err := json.Unmarshal(bytes, &whitelist); err != nil {
+	var writeWhitelist WriteWhitelist
+	if err := json.Unmarshal(bytes, &writeWhitelist); err != nil {
 		return nil, fmt.Errorf("could not parse JSON: %w", err)
 	}
 
-	return &whitelist, nil
+	return &writeWhitelist, nil
 }
 
 type ReadWhitelist struct {
@@ -82,14 +82,14 @@ func main() {
 	relay.Info.Software = "https://github.com/bitvora/sw2"
 	relay.Info.Version = "0.1.0"
 
-	whitelist, err := loadWhitelist("whitelist.json")
+	writeWhitelist, err := loadWriteWhitelist("write_whitelist.json")
 	if err != nil {
-		fmt.Println("Error loading config:", err)
+		fmt.Println("Error loading write whitelist:", err)
 		return
 	}
 
-	fmt.Println("Whitelisted pubkeys:")
-	for _, pubkey := range whitelist.Pubkeys {
+	fmt.Println("Write whitelisted pubkeys:")
+	for _, pubkey := range writeWhitelist.Pubkeys {
 		fmt.Println(pubkey)
 	}
 
@@ -98,12 +98,12 @@ func main() {
 			return true, "no pubkey"
 		}
 
-		// Allow if whitelist is empty
-		if len(whitelist.Pubkeys) == 0 {
+		// Allow if writeWhitelist is empty
+		if len(writeWhitelist.Pubkeys) == 0 {
 			return false, ""
 		}
 
-		for _, pubkey := range whitelist.Pubkeys {
+		for _, pubkey := range writeWhitelist.Pubkeys {
 			if pubkey == event.PubKey {
 				return false, ""
 			}

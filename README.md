@@ -64,7 +64,7 @@ Open the `read_whitelist.json` file and add pubkeys to the array
 }
 ```
 
-If the read_whitelist.json is left blank `{}`, then all users are authorised to read.
+If the `read_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to read.
 
 ### 4.2 Whitelist Pubkeys (for Posting Notes)
 
@@ -80,7 +80,7 @@ Open the `whitelist.json` file and add pubkeys to the array
 }
 ```
 
-If the whitelist.json is left blank `{}`, then all users are authorised to write.
+If the `whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to write.
 
 ### 5. Build the project
 
