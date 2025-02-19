@@ -1,6 +1,6 @@
 # Simple With Whitelisting (sw2)
 
-Simple With Whitelisting (sw2) is a nostr relay that only accepts notes from whitelisted pubkeys.
+Simple With Whitelisting (sw2) is a nostr relay that displays and accepts notes only from whitelisted pubkeys.
 
 It's built on the [Khatru](https://khatru.nostr.technology) framework.
 
@@ -8,6 +8,15 @@ It's built on the [Khatru](https://khatru.nostr.technology) framework.
 
 - **Go**: Ensure you have Go installed on your system. You can download it from [here](https://golang.org/dl/).
 - **Build Essentials**: If you're using Linux, you may need to install build essentials. You can do this by running `sudo apt install build-essential`.
+
+## Use Cases
+
+This relay can suit a variety of uses:
+
+- **Running a small community**: Community members are whitelisted to read and post notes.
+- **Running a knowledge base**: Users are whitelisted to read notes, but only administrators can post notes.
+- **Running a blind dropbox**: Users are whitelisted to post notes, but only the administrator can read notes.
+- **Combinations of the above**: A Community where members can read and post, and guests can read only.
 
 ## Setup Instructions
 
@@ -41,18 +50,39 @@ RELAY_ICON="https://pfp.nostr.build/d8fb3b6100a0eb9e652bbc34a0c043b7f225dc74e4ed
 RELAY_CONTACT="https://utxo.one"
 ```
 
-### 4. Whitelist Pubkeys
+### 4.1 Whitelist Pubkeys for Reading Notes
 
-Open the `whitelist.json` file and add pubkeys to the array
+Open the `read_whitelist.json` file and add pubkeys to the array
 
 ```json
 {
   "pubkeys": [
     "1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551",
-    "9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27"
+    "9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27",
+    "1bda7e1f7396bda2d1ef99033da8fd2dc362810790df9be62f591038bb97c4d9"
   ]
 }
 ```
+
+If the `read_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to read.
+
+### 4.2 Whitelist Pubkeys for Posting Notes
+
+Open the `write_whitelist.json` file and add pubkeys to the array
+
+```json
+{
+  "pubkeys": [
+    "1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551",
+    "9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27",
+    "ede41352397758154514148b24112308ced96d121229b0e6a66bc5a2b40c03ec"
+  ]
+}
+```
+
+If the `write_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to write.
+
+To maintain compatibliity with previous versions of SW2, a file `whitelist.json` can be used instead of `write_whitelist.json` if you prefer.
 
 ### 5. Build the project
 

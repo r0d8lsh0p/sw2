@@ -14,11 +14,44 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
-type Whitelist struct {
+type WriteWhitelist struct {
 	Pubkeys []string `json:"pubkeys"`
 }
 
-func loadWhitelist(filename string) (*Whitelist, error) {
+func loadWriteWhitelist() (*WriteWhitelist, error) {
+	// Try opening "whitelist.json" first
+	file, err := os.Open("whitelist.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			// Fallback to "write_whitelist.json" if "whitelist.json" does not exist
+			file, err = os.Open("write_whitelist.json")
+			if err != nil {
+				return nil, fmt.Errorf("could not open file: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("could not open file: %w", err)
+		}
+	}
+	defer file.Close()
+
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file: %w", err)
+	}
+
+	var writeWhitelist WriteWhitelist
+	if err := json.Unmarshal(bytes, &writeWhitelist); err != nil {
+		return nil, fmt.Errorf("could not parse JSON: %w", err)
+	}
+
+	return &writeWhitelist, nil
+}
+
+type ReadWhitelist struct {
+	Pubkeys []string `json:"pubkeys"`
+}
+
+func loadReadWhitelist(filename string) (*ReadWhitelist, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("could not open file: %w", err)
@@ -30,12 +63,12 @@ func loadWhitelist(filename string) (*Whitelist, error) {
 		return nil, fmt.Errorf("could not read file: %w", err)
 	}
 
-	var whitelist Whitelist
-	if err := json.Unmarshal(bytes, &whitelist); err != nil {
+	var readWhitelist ReadWhitelist
+	if err := json.Unmarshal(bytes, &readWhitelist); err != nil {
 		return nil, fmt.Errorf("could not parse JSON: %w", err)
 	}
 
-	return &whitelist, nil
+	return &readWhitelist, nil
 }
 
 func main() {
@@ -58,14 +91,14 @@ func main() {
 	relay.Info.Software = "https://github.com/bitvora/sw2"
 	relay.Info.Version = "0.1.0"
 
-	whitelist, err := loadWhitelist("whitelist.json")
+	writeWhitelist, err := loadWriteWhitelist()
 	if err != nil {
-		fmt.Println("Error loading config:", err)
+		fmt.Println("Error loading write whitelist:", err)
 		return
 	}
 
-	fmt.Println("Whitelisted pubkeys:")
-	for _, pubkey := range whitelist.Pubkeys {
+	fmt.Println("Write whitelisted pubkeys:")
+	for _, pubkey := range writeWhitelist.Pubkeys {
 		fmt.Println(pubkey)
 	}
 
@@ -74,7 +107,12 @@ func main() {
 			return true, "no pubkey"
 		}
 
-		for _, pubkey := range whitelist.Pubkeys {
+		// Allow if writeWhitelist is empty
+		if len(writeWhitelist.Pubkeys) == 0 {
+			return false, ""
+		}
+
+		for _, pubkey := range writeWhitelist.Pubkeys {
 			if pubkey == event.PubKey {
 				return false, ""
 			}
@@ -83,11 +121,45 @@ func main() {
 		return true, "pubkey not whitelisted"
 	})
 
+	relay.OnConnect = append(relay.OnConnect, func(ctx context.Context) {
+		khatru.RequestAuth(ctx)
+	})
+
+	readWhitelist, err := loadReadWhitelist("read_whitelist.json")
+	if err != nil {
+		fmt.Println("Error loading read whitelist:", err)
+		return
+	}
+
+	fmt.Println("Read whitelisted pubkeys:")
+	for _, pubkey := range readWhitelist.Pubkeys {
+		fmt.Println(pubkey)
+	}
+
 	relay.StoreEvent = append(relay.StoreEvent, db.SaveEvent)
 	relay.QueryEvents = append(relay.QueryEvents, db.QueryEvents)
+
+	relay.RejectFilter = append(relay.RejectFilter, func(ctx context.Context, filter nostr.Filter) (reject bool, msg string) {
+		authenticatedUser := khatru.GetAuthed(ctx)
+		if authenticatedUser == "" {
+			return true, "auth-required: this query requires you to be authenticated"
+		}
+
+		// Allow if readWhitelist is empty
+		if len(readWhitelist.Pubkeys) == 0 {
+			return false, ""
+		}
+
+		for _, pubkey := range readWhitelist.Pubkeys {
+			if pubkey == authenticatedUser {
+				return false, ""
+			}
+		}
+		return true, "restricted: you're not authorized to read"
+	})
+
 	relay.CountEvents = append(relay.CountEvents, db.CountEvents)
 	relay.DeleteEvent = append(relay.DeleteEvent, db.DeleteEvent)
-
 	fmt.Println("running on :3334")
 	http.ListenAndServe(":3334", relay)
 }

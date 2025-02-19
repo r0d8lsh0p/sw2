@@ -1,2 +1,5 @@
 .env
 db/
+sw2
+docker-compose.yml
+Dockerfile
