@@ -1,0 +1,20 @@
+services:
+  relay:
+    container_name: sw2-relay
+    build:
+      context: .
+    env_file:
+      - .env
+    volumes:
+      - "./db:/app/db"
+      - "./templates:/app/templates"
+      - "./read_whitelist.json:/app/read_whitelist.json"
+      - "./write_whitelist.json:/app/write_whitelist.json"
+    ports:
+      - "3334:3334"
+#    networks:
+#      - caddy # Connect to a Caddy network for reverse proxy
+
+# networks:
+#  caddy:
+#    external: true # Connect to a Caddy network for reverse proxy
