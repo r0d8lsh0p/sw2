@@ -21,7 +21,15 @@ type WriteWhitelist struct {
 func loadWriteWhitelist(filename string) (*WriteWhitelist, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not open file: %w", err)
+		if os.IsNotExist(err) && filename == "write_whitelist.json" {
+			// Try opening "whitelist.json" if "write_whitelist.json" does not exist
+			file, err = os.Open("whitelist.json")
+			if err != nil {
+				return nil, fmt.Errorf("could not open file: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("could not open file: %w", err)
+		}
 	}
 	defer file.Close()
 

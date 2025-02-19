@@ -82,6 +82,8 @@ Open the `write_whitelist.json` file and add pubkeys to the array
 
 If the `write_whitelist.json` contains no pubkeys `{"pubkeys": []}`, then all users are authorised to write.
 
+To maintain compatibliity with previous versions of SW2, a file `whitelist.json` can be used instead of `write_whitelist.json` if you prefer.
+
 ### 5. Build the project
 
 Run the following command to build the relay:
