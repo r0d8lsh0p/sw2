@@ -18,12 +18,13 @@ type WriteWhitelist struct {
 	Pubkeys []string `json:"pubkeys"`
 }
 
-func loadWriteWhitelist(filename string) (*WriteWhitelist, error) {
-	file, err := os.Open(filename)
+func loadWriteWhitelist() (*WriteWhitelist, error) {
+	// Try opening "whitelist.json" first
+	file, err := os.Open("whitelist.json")
 	if err != nil {
-		if os.IsNotExist(err) && filename == "write_whitelist.json" {
-			// Try opening "whitelist.json" if "write_whitelist.json" does not exist
-			file, err = os.Open("whitelist.json")
+		if os.IsNotExist(err) {
+			// Fallback to "write_whitelist.json" if "whitelist.json" does not exist
+			file, err = os.Open("write_whitelist.json")
 			if err != nil {
 				return nil, fmt.Errorf("could not open file: %w", err)
 			}
@@ -90,7 +91,7 @@ func main() {
 	relay.Info.Software = "https://github.com/bitvora/sw2"
 	relay.Info.Version = "0.1.0"
 
-	writeWhitelist, err := loadWriteWhitelist("write_whitelist.json")
+	writeWhitelist, err := loadWriteWhitelist()
 	if err != nil {
 		fmt.Println("Error loading write whitelist:", err)
 		return
