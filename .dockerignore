@@ -1,0 +1,5 @@
+db/
+sw2
+.env
+events.jsonl
+tools/export-legacy-db/export-legacy-db
