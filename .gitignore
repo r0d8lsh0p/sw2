@@ -1,3 +1,4 @@
 .env
 db/
 sw2
+tools/export-legacy-db/export-legacy-db
