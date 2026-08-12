@@ -112,19 +112,21 @@ func writePolicy(rawCount int, allowed map[nostr.PubKey]bool) func(context.Conte
 	}
 }
 
-// readPolicy preserves sw2's read rules exactly: every query requires NIP-42
-// authentication; an empty whitelist then admits any authenticated user,
-// otherwise the authenticated pubkey must be listed.
+// readPolicy: with an empty read whitelist the relay is publicly readable —
+// no authentication asked — matching the README's long-documented behaviour
+// ("if read_whitelist.json contains no pubkeys, all users are authorised to
+// read"). With a populated list, every query requires NIP-42 authentication
+// and the authenticated pubkey must be listed.
 func readPolicy(rawCount int, allowed map[nostr.PubKey]bool) func(context.Context, nostr.Filter) (bool, string) {
 	return func(ctx context.Context, filter nostr.Filter) (reject bool, msg string) {
-		authenticatedUser, authed := khatru.GetAuthed(ctx)
-		if !authed {
-			return true, "auth-required: this query requires you to be authenticated"
-		}
-
 		// Allow if readWhitelist is empty
 		if rawCount == 0 {
 			return false, ""
+		}
+
+		authenticatedUser, authed := khatru.GetAuthed(ctx)
+		if !authed {
+			return true, "auth-required: this query requires you to be authenticated"
 		}
 
 		if allowed[authenticatedUser] {

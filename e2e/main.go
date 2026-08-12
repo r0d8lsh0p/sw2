@@ -216,8 +216,7 @@ func runOpen(binary string) {
 	allowed, reason := tryRead(ctx, &sk)
 	check("empty read list: any authenticated user can read", allowed, "CLOSED "+reason)
 	allowed, reason = tryRead(ctx, nil)
-	check("empty read list: unauthenticated still rejected", !allowed && strings.Contains(reason, "auth-required"),
-		fmt.Sprintf("got allowed=%v %q", allowed, reason))
+	check("empty read list: publicly readable without auth", allowed, "CLOSED "+reason)
 }
 
 func runLegacy(binary string) {

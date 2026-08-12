@@ -177,7 +177,7 @@ Once everything is set up, the relay will be running on `localhost:3334` or your
 
 ## Upgrading from an older sw2 (database format change)
 
-sw2 now builds on the consolidated [`fiatjaf.com/nostr`](https://pkg.go.dev/fiatjaf.com/nostr) library (the successor to the archived `github.com/fiatjaf/khatru`). **The on-disk database format changed.** A database written by an older sw2 will open without error, but events will not be served (decode errors appear in the logs). Whitelist files, env vars, and read/write behaviour are unchanged, with one library-driven exception: deletion requests (kind 5) previously bypassed the write whitelist and were not stored; they now pass through the whitelist like any other event and are stored and served.
+sw2 now builds on the consolidated [`fiatjaf.com/nostr`](https://pkg.go.dev/fiatjaf.com/nostr) library (the successor to the archived `github.com/fiatjaf/khatru`). **The on-disk database format changed.** A database written by an older sw2 will open without error, but events will not be served (decode errors appear in the logs). Whitelist files, env vars, and read/write behaviour are unchanged, with two exceptions: deletion requests (kind 5) previously bypassed the write whitelist and were not stored — they now pass through the whitelist like any other event and are stored and served (library-driven); and an **empty read whitelist is now publicly readable without authentication**, matching what this README has always said — previously the code demanded NIP-42 auth even with an empty list.
 
 To keep your events, export them with the bundled legacy tool **before** upgrading, using the old database:
 
