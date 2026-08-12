@@ -65,6 +65,62 @@ func TestLoadReadWhitelist(t *testing.T) {
 	}
 }
 
+func TestWhitelistsFromEnv(t *testing.T) {
+	t.Run("WRITE_WHITELIST_PUBKEYS wins over files", func(t *testing.T) {
+		dir := t.TempDir()
+		writeFile(t, dir, "whitelist.json", `{"pubkeys":["aa"]}`)
+		t.Chdir(dir)
+		t.Setenv("WRITE_WHITELIST_PUBKEYS", " bb , cc ,")
+		wl, err := loadWriteWhitelist()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(wl.Pubkeys) != 2 || wl.Pubkeys[0] != "bb" || wl.Pubkeys[1] != "cc" {
+			t.Errorf("env entries must be trimmed and empties dropped, got %v", wl.Pubkeys)
+		}
+	})
+
+	t.Run("blank WRITE_WHITELIST_PUBKEYS falls back to files", func(t *testing.T) {
+		dir := t.TempDir()
+		writeFile(t, dir, "write_whitelist.json", `{"pubkeys":["aa"]}`)
+		t.Chdir(dir)
+		t.Setenv("WRITE_WHITELIST_PUBKEYS", "   ")
+		wl, err := loadWriteWhitelist()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(wl.Pubkeys) != 1 || wl.Pubkeys[0] != "aa" {
+			t.Errorf("blank env must not shadow the file, got %v", wl.Pubkeys)
+		}
+	})
+
+	t.Run("env with no file works", func(t *testing.T) {
+		t.Chdir(t.TempDir())
+		t.Setenv("WRITE_WHITELIST_PUBKEYS", "aa")
+		wl, err := loadWriteWhitelist()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(wl.Pubkeys) != 1 || wl.Pubkeys[0] != "aa" {
+			t.Errorf("got %v", wl.Pubkeys)
+		}
+	})
+
+	t.Run("READ_WHITELIST_PUBKEYS wins over file", func(t *testing.T) {
+		dir := t.TempDir()
+		writeFile(t, dir, "read_whitelist.json", `{"pubkeys":["dd"]}`)
+		t.Chdir(dir)
+		t.Setenv("READ_WHITELIST_PUBKEYS", "ee")
+		rl, err := loadReadWhitelist("read_whitelist.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(rl.Pubkeys) != 1 || rl.Pubkeys[0] != "ee" {
+			t.Errorf("got %v", rl.Pubkeys)
+		}
+	})
+}
+
 func TestParsePubkeySet(t *testing.T) {
 	pk := nostr.GetPublicKey(nostr.Generate())
 	set := parsePubkeySet([]string{pk.Hex(), "not-hex", ""})
