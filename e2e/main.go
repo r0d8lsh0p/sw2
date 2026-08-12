@@ -4,7 +4,7 @@
 // checks that used to gate releases.
 //
 //	go build -o sw2 . && go run ./e2e -binary ./sw2 -matrix
-//	go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, any authed user reads
+//	go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, reads are public
 //	go run ./e2e -binary ./sw2 -legacy   # whitelist.json takes primacy over write_whitelist.json
 //
 // The relay listens on the fixed port 3334 (sw2 behaviour), so run one mode
@@ -216,8 +216,7 @@ func runOpen(binary string) {
 	allowed, reason := tryRead(ctx, &sk)
 	check("empty read list: any authenticated user can read", allowed, "CLOSED "+reason)
 	allowed, reason = tryRead(ctx, nil)
-	check("empty read list: unauthenticated still rejected", !allowed && strings.Contains(reason, "auth-required"),
-		fmt.Sprintf("got allowed=%v %q", allowed, reason))
+	check("empty read list: publicly readable without auth", allowed, "CLOSED "+reason)
 }
 
 func runLegacy(binary string) {

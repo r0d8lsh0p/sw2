@@ -158,11 +158,11 @@ func TestPermissionMatrix(t *testing.T) {
 	}
 }
 
-func TestUnauthenticatedReadAlwaysRejected(t *testing.T) {
+func TestUnauthenticatedRead(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	t.Run("with populated read list", func(t *testing.T) {
+	t.Run("populated read list: rejected with auth-required", func(t *testing.T) {
 		url := newTestRelay(t, nil, []string{nostr.GetPublicKey(nostr.Generate()).Hex()})
 		allowed, reason := tryRead(t, ctx, url, nil)
 		if allowed || !strings.Contains(reason, "auth-required") {
@@ -170,11 +170,11 @@ func TestUnauthenticatedReadAlwaysRejected(t *testing.T) {
 		}
 	})
 
-	t.Run("even with empty read list", func(t *testing.T) {
+	t.Run("empty read list: publicly readable without auth", func(t *testing.T) {
 		url := newTestRelay(t, nil, nil)
 		allowed, reason := tryRead(t, ctx, url, nil)
-		if allowed || !strings.Contains(reason, "auth-required") {
-			t.Errorf("empty read list still requires auth; got allowed=%v reason=%q", allowed, reason)
+		if !allowed {
+			t.Errorf("empty read list must be publicly readable; got CLOSED %q", reason)
 		}
 	})
 }

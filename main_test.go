@@ -114,11 +114,18 @@ func TestWritePolicy(t *testing.T) {
 }
 
 func TestReadPolicyUnauthenticated(t *testing.T) {
-	// the authenticated paths are covered by the integration matrix; here we
-	// pin the rule that reads ALWAYS require auth, even with an empty list
-	policy := readPolicy(0, nil)
-	reject, msg := policy(context.Background(), nostr.Filter{})
-	if !reject || msg != "auth-required: this query requires you to be authenticated" {
-		t.Errorf("unauthenticated read must be rejected even with empty whitelist, got %v %q", reject, msg)
-	}
+	// the authenticated paths are covered by the integration matrix
+	t.Run("empty list: publicly readable, no auth asked", func(t *testing.T) {
+		policy := readPolicy(0, nil)
+		if reject, msg := policy(context.Background(), nostr.Filter{}); reject {
+			t.Errorf("empty read whitelist must allow unauthenticated reads, got rejected %q", msg)
+		}
+	})
+	t.Run("populated list: auth required", func(t *testing.T) {
+		policy := readPolicy(1, nil)
+		reject, msg := policy(context.Background(), nostr.Filter{})
+		if !reject || msg != "auth-required: this query requires you to be authenticated" {
+			t.Errorf("got %v %q", reject, msg)
+		}
+	})
 }
