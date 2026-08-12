@@ -4,7 +4,7 @@
 // checks that used to gate releases.
 //
 //	go build -o sw2 . && go run ./e2e -binary ./sw2 -matrix
-//	go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, any authed user reads
+//	go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, reads are public
 //	go run ./e2e -binary ./sw2 -legacy   # whitelist.json takes primacy over write_whitelist.json
 //
 // The relay listens on the fixed port 3334 (sw2 behaviour), so run one mode

@@ -209,6 +209,6 @@ End-to-end checks spawn the real binary with real whitelist files (the relay lis
 ```bash
 go build -o sw2 .
 go run ./e2e -binary ./sw2 -matrix   # RW / write-only / read-only / neither
-go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, any authed user reads
+go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, reads are public
 go run ./e2e -binary ./sw2 -legacy   # whitelist.json takes primacy over write_whitelist.json
 ```
