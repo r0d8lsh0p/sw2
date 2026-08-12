@@ -174,3 +174,41 @@ sudo systemctl enable sw2
 ### 9. Access the relay
 
 Once everything is set up, the relay will be running on `localhost:3334` or your domain name if you set up a reverse proxy.
+
+## Upgrading from an older sw2 (database format change)
+
+sw2 now builds on the consolidated [`fiatjaf.com/nostr`](https://pkg.go.dev/fiatjaf.com/nostr) library (the successor to the archived `github.com/fiatjaf/khatru`). **The on-disk database format changed.** A database written by an older sw2 will open without error, but events will not be served (decode errors appear in the logs). Whitelist files, env vars, and read/write behaviour are unchanged, with one library-driven exception: deletion requests (kind 5) previously bypassed the write whitelist and were not stored; they now pass through the whitelist like any other event and are stored and served.
+
+To keep your events, export them with the bundled legacy tool **before** upgrading, using the old database:
+
+```bash
+# with the relay stopped
+cd tools/export-legacy-db && go build -o export-legacy-db . && cd ../..
+./tools/export-legacy-db/export-legacy-db db > events.jsonl
+
+mv db db-old-backup     # start fresh
+./sw2 &                  # new binary creates a new-format db/
+cat events.jsonl | nak event ws://localhost:3334
+```
+
+Replayed events pass the normal write whitelist — so if you have removed
+authors from the list since their events were written, those events are
+dropped on replay. NIP-70 protected events (`["-"]` tag) cannot be replayed
+by the operator at all: the new library only accepts them from their
+NIP-42-authenticated author. The export needs RAM proportional to the
+database size. If you don't need old events, just move `db/` aside and start.
+
+## Tests
+
+```bash
+go test ./...   # unit + in-process integration (the full read/write permission matrix)
+```
+
+End-to-end checks spawn the real binary with real whitelist files (the relay listens on the fixed port 3334, so run one mode at a time):
+
+```bash
+go build -o sw2 .
+go run ./e2e -binary ./sw2 -matrix   # RW / write-only / read-only / neither
+go run ./e2e -binary ./sw2 -open     # empty lists: anyone writes, any authed user reads
+go run ./e2e -binary ./sw2 -legacy   # whitelist.json takes primacy over write_whitelist.json
+```
