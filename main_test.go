@@ -17,6 +17,7 @@ func writeFile(t *testing.T, dir, name, content string) {
 }
 
 func TestLoadWriteWhitelist(t *testing.T) {
+	t.Setenv("WRITE_WHITELIST_PUBKEYS", "") // isolate from ambient shell env
 	t.Run("legacy whitelist.json takes primacy", func(t *testing.T) {
 		dir := t.TempDir()
 		writeFile(t, dir, "whitelist.json", `{"pubkeys":["aa"]}`)
@@ -53,6 +54,7 @@ func TestLoadWriteWhitelist(t *testing.T) {
 }
 
 func TestLoadReadWhitelist(t *testing.T) {
+	t.Setenv("READ_WHITELIST_PUBKEYS", "") // isolate from ambient shell env
 	dir := t.TempDir()
 	writeFile(t, dir, "read_whitelist.json", `{"pubkeys":["dd"]}`)
 	t.Chdir(dir)
@@ -91,6 +93,36 @@ func TestWhitelistsFromEnv(t *testing.T) {
 		}
 		if len(wl.Pubkeys) != 1 || wl.Pubkeys[0] != "aa" {
 			t.Errorf("blank env must not shadow the file, got %v", wl.Pubkeys)
+		}
+	})
+
+	t.Run("env of only commas and spaces falls back to files", func(t *testing.T) {
+		// this branch is what guarantees the env path can never yield an
+		// empty list — i.e. can never trip the allow-everyone rule
+		dir := t.TempDir()
+		writeFile(t, dir, "write_whitelist.json", `{"pubkeys":["aa"]}`)
+		t.Chdir(dir)
+		t.Setenv("WRITE_WHITELIST_PUBKEYS", ",, ,")
+		wl, err := loadWriteWhitelist()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(wl.Pubkeys) != 1 || wl.Pubkeys[0] != "aa" {
+			t.Errorf("entry-less env must not shadow the file, got %v", wl.Pubkeys)
+		}
+	})
+
+	t.Run("blank READ_WHITELIST_PUBKEYS falls back to file", func(t *testing.T) {
+		dir := t.TempDir()
+		writeFile(t, dir, "read_whitelist.json", `{"pubkeys":["dd"]}`)
+		t.Chdir(dir)
+		t.Setenv("READ_WHITELIST_PUBKEYS", "")
+		rl, err := loadReadWhitelist("read_whitelist.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(rl.Pubkeys) != 1 || rl.Pubkeys[0] != "dd" {
+			t.Errorf("blank env must not shadow the file, got %v", rl.Pubkeys)
 		}
 	})
 

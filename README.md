@@ -91,20 +91,28 @@ To maintain compatibliity with previous versions of SW2, a file `whitelist.json`
 
 ### 4.3 Whitelist via Environment Variables
 
-Both whitelists can alternatively be supplied as comma-separated pubkey lists
-in environment variables, which is convenient for hosted platforms (Railway,
-Fly, etc.) where per-environment config lives in env vars rather than files:
+Both whitelists can alternatively be supplied in environment variables, which
+is convenient for hosted platforms (Railway, Fly, etc.) where per-environment
+config lives in env vars rather than files. The format is a single string of
+hex pubkeys separated by commas — one entry or a hundred, no brackets or
+quotes around individual keys; whitespace around entries and a trailing comma
+are ignored:
 
 ```bash
-WRITE_WHITELIST_PUBKEYS="1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551,9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27"
+# one pubkey
 READ_WHITELIST_PUBKEYS="1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551"
+
+# several pubkeys, comma-separated
+WRITE_WHITELIST_PUBKEYS="1c6cb22996baabe921bcd45c8b6213b2dab096f88e4ba5678d43d195a1868551,9c5d0b120f01b75292d2a2bc32972bf918c8dd8927eaa633d3f62e181a292b27,ede41352397758154514148b24112308ced96d121229b0e6a66bc5a2b40c03ec"
 ```
 
-When a variable is set and non-blank it takes precedence over the
-corresponding JSON file; when unset or blank the file is used as before. Note
-that the "empty list = allow everyone" behaviour can only be expressed via the
-files — a blank variable deliberately falls back to the file rather than
-opening the relay to everyone.
+When a variable contains at least one entry it takes precedence over the
+corresponding JSON file; when unset, blank, or containing only commas and
+whitespace, the file is used as before. Note that the "empty list = allow
+everyone" behaviour can only be expressed via the files — a blank variable
+deliberately falls back to the file rather than opening the relay to everyone.
+(When running under docker-compose, vars placed in `.env` reach the container
+via `env_file` and take the same precedence over the volume-mounted files.)
 
 ### 5. Running with Docker (Recommended)
 
